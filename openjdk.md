@@ -110,7 +110,7 @@ OpenJDK Runtime Environment (build 15-internal+0-adhoc.ovidiu.jdk)
 OpenJDK 64-Bit Server VM (build 15-internal+0-adhoc.ovidiu.jdk, mixed mode)
 ```
 
-Looks like it worked!.
+Looks like it worked!
 
 But building it is not the full story. I wanted to add my own modification to it.
 
