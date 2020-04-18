@@ -1,2 +1,175 @@
-# Compiling OpenJDK
+# Building the OpenJDK
 
+In 2006 Sun Microsystems open sourced Java and made it available under the GPLv2 license with the Classpath exception.
+All of a sudden anybody could compile their own distribution, Java was finally free.
+
+Today after so many years, not many people compile their own Java. Some even don't know this is possible.
+
+Last time I went to FOSDEM, I found out about a new initiative: AdoptOpenJDK. They compile Java distributions from
+the source, run the tests and make the binaries available for everyone. While this is indeed promoting the 
+OpenJDK project, for most people the experience hasn't changed: you download a pre-made distribution and you
+install it. Most likely you'll never notice any difference.
+
+When Sun first opened the source compiling the OpenJDK was not that straightforward, the source was spread in 
+different repositories and it required quite a bit of effort to get everything right. 
+Most of the pages with instructions on how to build the OpenJDK yourself that Google finds, are from that era.
+
+One evening I decided to give it a try. Here is what happened that evening.
+
+My first impression was that I should better use the scripts from the AdoptOpenJDK project and spare myself the
+trouble. Cloned their source from GitHub and gave it a go. They require you to already have a version of Java
+installed on your machine but I already had several and this didn't look like an issue.
+
+Here comes the first disappointment: when I tried building jdku14 the scripts first downloaded Gradle and then 
+complained about the existing Java version being to high. I changed the JAVA_HOME variable to point to an older
+version of Java and this time it passed the Gradle and Groovy stage then it complained the Java version was too
+low.
+
+I tried fixing the scripts by instructing it to download a newer version of Gradle, Googled for solutions and even
+looked at the OpenJDK list of issues on GitHub. The process was not becoming quite long and I wasn't sure any
+more if I was still saving effort with this approach.
+
+Went to the source repository in OpenJDK's to have a look: [source](https://hg.openjdk.java.net/jdk/). 
+In there was waiting quite a welcome surprise: for newer versions of Java 
+the whole source was now in just one place, no need to clone lots of Mercurial forests.
+
+I clicked on jdk and then browse and then noticed the doc subdirectory.
+
+A readme file in the doc subdirectory had short instructions on how to build. Surely I thought, 
+it couldn't have been that simple.
+
+The steps are pretty straightforward:
+- Install mercurial
+- Clone the source
+- Configure the build
+- Make the images
+
+I decided to give it a go. My computer is running the lastest version of Debian so the steps I followed
+are specific to an apt Linux distribution.
+
+Install Mercurial
+
+```bash
+$ sudo apt install mercurial`
+```
+
+A few seconds later mercurial was installed. Cloning the source was just as simple:
+`hg clone http://hg.openjdk.java.net/jdk/jdk`
+
+This command will fetch the current development source, at the time of this article, jdk15. You will probably want to 
+stick to the released version so that command would be:
+
+```bash
+hg clone http://hg.openjdk.java.net/jdk/jdk14
+```
+
+But again, if you are reading this, you are probably comfortable on the bleeding edge zone.
+
+Cloning the Mercurial repository will take ages. On my system it took almost an hour and I have a reasonably good 
+internet connection.
+
+Get something to do in the meantime. It's really too long to stare at slowly moving progress bar on the screen.
+After the download finished I decided to make a copy so that I would not have to wait as long if I want to repeat the process:
+
+```bash
+tar c  jdk | xz -9 > jdk.tar.xz`
+```
+
+I was expecting this to not be instant as it goes for high compression but the result was shockingly large:
+
+``` bash
+ovidiu@ionescu:~/3party/OpenJDK$ ls -l jdk.tar.xz 
+-rw-r--r-- 1 ovidiu ovidiu 1053971052 Apr 17 23:30 jdk.tar.xz
+```
+
+That's practically a gigabyte. Also the time it took to produce it almost rivalled the time it took to download the source in the first place.
+
+Next step is, get inside the newly created directory and run the configure file. This is an old approach when programming on Linux: 
+have a script that finds if all the necessary libraries are present and produce a scripts that allow you to build the program.
+
+I thought my system had enough dev libraries installed but the configure script instructed me to install some more. It was really easy,
+just used apt and in a couple of minutes the config script declared itseld satisfied.
+
+Now for the final step, how long will this be?
+
+`make images`
+
+Well, the previous long steps made this one felt pretty snappy. Everything in life is relative.
+
+After the wait was over, the moment of truth: do I have a working JDK?
+
+```bash
+ovidiu@ionescu:~/3party/OpenJDK/jdk$ build/linux-x86_64-server-release/jdk/bin/java -version
+openjdk version "15-internal" 2020-09-15
+OpenJDK Runtime Environment (build 15-internal+0-adhoc.ovidiu.jdk)
+OpenJDK 64-Bit Server VM (build 15-internal+0-adhoc.ovidiu.jdk, mixed mode)
+```
+
+Looks like it worked!.
+
+But building it is not the full story. I wanted to add my own modification to it.
+
+One of the things missing in the standard distribution is a method to reverse a String. java.lang.String does not have a reverse method, you need to put String into StringBuilder, reverse it and then convert it back to a String.
+It seems to be a common interview question and while the solution above is trivial, I thought it would be much nicer to add it in.
+
+A quick find command showed me where the source for java.lang.String
+
+```bash
+ovidiu@ionescu:~/3party/OpenJDK/jdk$ find . -name 'String.java'
+./src/java.xml/share/classes/com/sun/org/apache/xpath/internal/operations/String.java
+./src/java.base/share/classes/java/lang/String.java
+./test/langtools/tools/javac/importOnDemand/p1/String.java
+
+```
+
+The second file found is the one I wanted. Went inside and added a new method:
+
+```java
+    /**
+     * Allocates a new {@code String} that contains the caracters of this
+     * String in reverse order.
+     *
+     * @return String
+     *         The reversed String
+     */
+    public String reverse() {
+        int n = this.length();
+        char[] buf = new char[n];
+        for(int i = 0; i < n; i++) {
+            buf[i] = this.charAt(n - i - 1);
+        }
+        return new String(buf);
+    }
+```
+
+Ran `make images` again and this time the build was really quick.
+
+In order to start using the new JDK you need configure it to be the default one:
+
+```bash
+export JAVA_HOME=/home/ovidiu/3party/OpenJDK/jdk/build/linux-x86_64-server-release/images/jdk
+export PATH=$JAVA_HOME/bin:$HOME/.cargo/bin:$HOME/.npm-global/bin:/usr/local/bin:/usr/bin:/bin
+```
+
+I quickly wrote my first program using my newly added code:
+
+```java
+public class Reverse {
+  public static void main(String[] args) {
+    System.out.println("OpenJDK Rocks".reverse());
+  }
+}
+```
+
+Compiled it and ran it:
+
+```bash
+ovidiu@ionescu:~/3party/OpenJDK/Tests/001$ javac Reverse.java 
+ovidiu@ionescu:~/3party/OpenJDK/Tests/001$ java Reverse
+skcoR KDJnepO
+```
+
+Well, that went much easier than expected. I would advise you to give it a try, it's quite a lot of fun.
+
+Now I need to somehow persuade an OpenJDK contributor to raise an issue about not having reverse in String itself 
+but only in StringBuilder and sumbmit my patch.
