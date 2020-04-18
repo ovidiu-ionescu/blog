@@ -16,6 +16,7 @@ Most of the pages with instructions on how to build the OpenJDK yourself that Go
 
 One evening I decided to give it a try. Here is what happened that evening.
 
+## Attempt one: how not to do it
 My first impression was that I should better use the scripts from the AdoptOpenJDK project and spare myself the
 trouble. Cloned their source from GitHub and gave it a go. They require you to already have a version of Java
 installed on your machine but I already had several and this didn't look like an issue.
@@ -29,8 +30,10 @@ I tried fixing the scripts by instructing it to download a newer version of Grad
 looked at the OpenJDK list of issues on GitHub. The process was not becoming quite long and I wasn't sure any
 more if I was still saving effort with this approach.
 
-Went to the source repository in OpenJDK's to have a look: [source](https://hg.openjdk.java.net/jdk/). 
-In there was waiting quite a welcome surprise: for newer versions of Java 
+## Attempt two: sometimes the hard way turns out to be the easy way
+
+Went to the source repository in OpenJDK's to have a look: [OpenJDK source](https://hg.openjdk.java.net/jdk/). 
+In there, was waiting quite a nice surprise: for newer versions of Java 
 the whole source was now in just one place, no need to clone lots of Mercurial forests.
 
 I clicked on jdk and then browse and then noticed the doc subdirectory.
@@ -38,7 +41,7 @@ I clicked on jdk and then browse and then noticed the doc subdirectory.
 A readme file in the doc subdirectory had short instructions on how to build. Surely I thought, 
 it couldn't have been that simple.
 
-The steps are pretty straightforward:
+The steps were pretty straightforward:
 - Install mercurial
 - Clone the source
 - Configure the build
@@ -54,7 +57,9 @@ $ sudo apt install mercurial`
 ```
 
 A few seconds later mercurial was installed. Cloning the source was just as simple:
-`hg clone http://hg.openjdk.java.net/jdk/jdk`
+```bash
+hg clone http://hg.openjdk.java.net/jdk/jdk
+```
 
 This command will fetch the current development source, at the time of this article, jdk15. You will probably want to 
 stick to the released version so that command would be:
@@ -109,7 +114,7 @@ Looks like it worked!.
 
 But building it is not the full story. I wanted to add my own modification to it.
 
-One of the things missing in the standard distribution is a method to reverse a String. java.lang.String does not have a reverse method, you need to put String into StringBuilder, reverse it and then convert it back to a String.
+One of the things missing in the standard distribution is a method to reverse a String. java.lang.String does not have a reverse method, you need to put the String into StringBuilder, reverse it and then convert it back to a String.
 It seems to be a common interview question and while the solution above is trivial, I thought it would be much nicer to add it in.
 
 A quick find command showed me where the source for java.lang.String
