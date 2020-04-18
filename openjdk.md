@@ -53,7 +53,7 @@ are specific to an apt Linux distribution.
 Install Mercurial
 
 ```bash
-$ sudo apt install mercurial`
+$ sudo apt install mercurial
 ```
 
 A few seconds later mercurial was installed. Cloning the source was just as simple:
@@ -77,7 +77,7 @@ Get something to do in the meantime. It's really too long to stare at slowly mov
 After the download finished I decided to make a copy so that I would not have to wait as long if I want to repeat the process:
 
 ```bash
-tar c  jdk | xz -9 > jdk.tar.xz`
+tar c  jdk | xz -9 > jdk.tar.xz
 ```
 
 I was expecting this to not be instant as it goes for high compression but the result was shockingly large:
