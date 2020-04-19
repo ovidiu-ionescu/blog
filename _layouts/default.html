@@ -10,7 +10,7 @@
   </head>
 
   <body>
-
+<!--
     <header>
       <div class="container">
         <a id="a-title" href="{{ '/' | relative_url }}">
@@ -27,7 +27,12 @@
         </section>
       </div>
     </header>
-
+-->
+    <header>
+        <div class="container">
+          <h1>{{ site.description | default: site.github.project_tagline }}</h1>
+        </div>
+    </header>
     <div class="container">
       <section id="main_content">
         {{ content }}
