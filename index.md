@@ -1,5 +1,3 @@
-# A blog about programming
-
 <ul>
   {% for post in site.posts %}
     <li>
